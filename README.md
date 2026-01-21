@@ -1,24 +1,32 @@
-# 🛡️ Sentinel-DB 
-> The High-Performance, Local-First Knowledge Engine for Engineering Intelligence.
+# 🛡️ Sentinel-DB
 
-**Sentinel-DB** is a specialized retrieval engine designed to give AI agents "Long-Term Memory." It solves the **Context Tax** by distilling massive codebases into a "Knowledge Pyramid," allowing agents like Claude and Copilot to reason about your entire architecture without hitting token limits.
+[![Rust](https://img.shields.io/badge/language-Rust-orange.svg)](https://www.rust-lang.org/)
+[![MCP Native](https://img.shields.io/badge/MCP-Native-blue.svg)](https://modelcontextprotocol.io)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Stars](https://img.shields.io/github/stars/YOUR_USERNAME/sentinel-db?style=social)](https://github.com/YOUR_USERNAME/sentinel-db)
 
-## 🚀 Why Sentinel-DB?
-Standard RAG is too slow and generic for code. Sentinel-DB uses:
-- **Semantic Chunking**: Understands code boundaries (Functions/Classes) via Tree-Sitter.
-- **HNSW Graph Search**: $O(\log N)$ retrieval speeds across millions of lines of code.
-- **MCP Native**: Plugs directly into Claude Code as a system-level tool.
+> **The high-performance, local-first knowledge engine that stops AI agents from forgetting your code.**
 
-## 🧠 The "Aha!" Features
-- **Context Compression**: Reduces token expenditure by up to 90%.
-- **Architectural Awareness**: Allows agents to answer "How does data flow?" instead of just "Fix this bug."
-- **Privacy First**: Everything stays on your machine. No cloud, no leaks.
+Sentinel-DB is a specialized retrieval engine designed to provide **Long-Term Memory** for autonomous engineering agents. It eliminates the **"Context Tax"** by distilling massive codebases into a dense Knowledge Pyramid, allowing Claude, Cursor, and Copilot to reason about your entire architecture without hitting token limits or leaking data to the cloud.
 
-## 🛠️ Getting Started
-```bash
-# Clone the Sentinel-DB engine
-git clone [https://github.com/YOUR_NAME/sentinel-db.git](https://github.com/YOUR_NAME/sentinel-db.git)
-cd sentinel-db
+---
 
-# Launch the Sentinel MCP Server
-claude --mcp sentinel-db
+## 💎 The "Aha!" Value
+* **Stop the Context Tax**: Stop paying for redundant tokens. Sentinel-DB finds the exact 50 lines that matter.
+* **Privacy-First**: Your code never leaves your machine. All indexing and vector search happens locally.
+* **Architectural Reasoning**: Go beyond "Search." Ask *"How does Auth flow to the DB?"* and get an architectural summary, not just a file list.
+
+---
+
+## 🏗️ Architecture: The Knowledge Pyramid
+Sentinel-DB doesn't just "index text"—it understands **code structure** using Tree-Sitter and recursive summarization.
+
+```text
+       ▲          [ REASONING LAYER ]
+      / \         Summarized Modules & Patterns
+     /   \        -----------------------------
+    /     \       [ SEMANTIC LAYER ]
+   /       \      HNSW Vector Index (Meaning)
+  /         \     -----------------------------
+ /           \    [ STRUCTURAL LAYER ]
+/_____________\   Tree-Sitter AST & Symbol Maps
