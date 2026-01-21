@@ -1,0 +1,11 @@
+[package]
+name = "sentinel-mcp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# 💎 This links the crate to the workspace definitions
+tree-sitter = { workspace = true }
+tree-sitter-rust = { workspace = true }
+anyhow = { workspace = true }
+walkdir = { workspace = true }
