@@ -30,12 +30,14 @@ Sentinel-DB doesn't just "index text"—it understands **code structure** using 
   /         \     -----------------------------
  /           \    [ STRUCTURAL LAYER ]
 /_____________\   Tree-Sitter AST & Symbol Maps
+```
+
+---
 
 ## 🛠️ Key Features
-
-- **⚡ SIMD-Accelerated Vector Search**: High-concurrency Rust engine using AVX-512/NEON instructions for sub-50ms retrieval across million-line repos.
-- **🌳 Semantic Chunking (Tree-Sitter)**: Instead of "blind" character limits, Sentinel-DB uses Abstract Syntax Trees (AST) to respect logical boundaries (Methods, Classes, and Modules).
-- **📉 Product Quantization (PQ)**: Advanced vector compression that reduces RAM footprint by 90% while maintaining 97%+ search accuracy.
-- **🔌 MCP Native**: Built-in Model Context Protocol server, enabling "plug-and-play" memory for Claude, Cursor, and internal Microsoft agentic tools.
-- **🏗️ Knowledge Pyramids**: Recursive summarization that allows AI to navigate from "Line 42" up to "System Architecture" seamlessly.
-- **🔐 Privacy-First & Local-First**: No data leaves your machine. Full compatibility with offline-mode engineering workflows.
+* ⚡**SIMD-Accelerated Vector Search**: High-concurrency Rust engine using AVX-512/NEON instructions for sub-50ms retrieval across million-line repos.
+* 🌳**Semantic Chunking (Tree-Sitter)**: Instead of "blind" character limits, Sentinel-DB uses Abstract Syntax Trees (AST) to respect logical boundaries (Methods, Classes, and Modules).
+* 📉 **Product Quantization (PQ)**: Advanced vector compression that reduces RAM footprint by 90% while maintaining 97%+ search accuracy.
+* 🔌**MCP Native**: Built-in Model Context Protocol server, enabling "plug-and-play" memory for Claude, Cursor, and internal Microsoft agentic tools.
+* 🏗️ **Knowledge Pyramids**: Recursive summarization that allows AI to navigate from "Line 42" up to "System Architecture" seamlessly.
+* 🔐 **Privacy-First & Local-First**: No data leaves your machine. Full compatibility with offline-mode engineering workflows.
