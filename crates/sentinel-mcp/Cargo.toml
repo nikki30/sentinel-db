@@ -9,3 +9,6 @@ tree-sitter = { workspace = true }
 tree-sitter-rust = { workspace = true }
 anyhow = { workspace = true }
 walkdir = { workspace = true }
+fastembed = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
