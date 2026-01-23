@@ -2,20 +2,53 @@ use anyhow;
 use tree_sitter::{Parser, Node};
 use walkdir::WalkDir;
 use std::fs;
+use std::env;
 use fastembed::{TextEmbedding, EmbeddingModel, InitOptions};
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+struct KnowledgePoint {
+    file_path: String,
+    function_name: String,
+    code_body: String,
+    embedding: Vec<f32>,
+}
 
 fn main() -> anyhow::Result<()> {
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
+        println!("Usage:\n  cargo run -p sentinel-mcp -- index\n  cargo run -p sentinel-mcp -- search \"your query\"");
+        return Ok(());
+    }
+
     // 1. Initialize the Brain
     let model = TextEmbedding::try_new(
-        InitOptions::new(EmbeddingModel::AllMiniLML6V2) // 👈 Removed the ", true"
-            .with_show_download_progress(true)           // 👈 Add this if you want the progress bar
+        InitOptions::new(EmbeddingModel::AllMiniLML6V2).with_show_download_progress(true)
     )?;
-    
+
+    match args[1].as_str() {
+        "index" => run_indexing(&model)?,
+        "search" => {
+            if args.len() < 3 {
+                println!("Please provide a search query.");
+                return Ok(());
+            }
+            let query = &args[2];
+            let map_data = fs::read_to_string("sentinel_map.json")?;
+            let map: Vec<KnowledgePoint> = serde_json::from_str(&map_data)?;
+            search(query, &map, &model)?;
+        }
+        _ => println!("Unknown command. Use 'index' or 'search'."),
+    }
+
+    Ok(())
+}
+
+fn run_indexing(model: &TextEmbedding) -> anyhow::Result<()> {
     let mut parser = Parser::new();
     parser.set_language(&tree_sitter_rust::LANGUAGE.into())?;
-
-    // 2. A place to store what we find
     let mut all_snippets = Vec::new();
+    let mut metadata = Vec::new(); // Store names and paths
 
     println!("🔎 Sentinel Repo Scan Initiated...");
 
@@ -29,32 +62,69 @@ fn main() -> anyhow::Result<()> {
             let code = fs::read_to_string(path)?;
             let tree = parser.parse(&code, None).unwrap();
             
-            // 💎 Pass the snippet list to the crawler
-            crawl_node(tree.root_node(), &code, &mut all_snippets);
+            // Modified crawl_node to return details
+            crawl_and_collect(tree.root_node(), &code, path.to_str().unwrap(), &mut all_snippets, &mut metadata);
         }
     }
 
-    // 3. GENERATE ALL EMBEDDINGS AT ONCE
     if !all_snippets.is_empty() {
         println!("\n🧠 Generating embeddings for {} snippets...", all_snippets.len());
         let embeddings = model.embed(all_snippets.clone(), None)?;
         
-        println!("✅ Success! First vector size: {}", embeddings[0].len());
-    }
+        let final_map: Vec<KnowledgePoint> = metadata.into_iter().zip(embeddings).map(|(meta, emb)| {
+            KnowledgePoint {
+                file_path: meta.0,
+                function_name: meta.1,
+                code_body: meta.2,
+                embedding: emb,
+            }
+        }).collect();
 
+        let json = serde_json::to_string_pretty(&final_map)?;
+        fs::write("sentinel_map.json", json)?;
+        println!("✅ Success! Knowledge map saved to sentinel_map.json");
+    }
     Ok(())
 }
 
-// Update your crawl_node to take the &mut Vec<String>
-fn crawl_node(node: Node, source: &str, snippets: &mut Vec<String>) {
+fn crawl_and_collect(node: Node, source: &str, path: &str, snippets: &mut Vec<String>, metadata: &mut Vec<(String, String, String)>) {
     if node.kind() == "function_item" {
-        let body = &source[node.start_byte()..node.end_byte()];
-        snippets.push(body.to_string());
-        println!("  🚀 Captured: {}", node.child_by_field_name("name").unwrap().utf8_text(source.as_bytes()).unwrap());
+        let name_node = node.child_by_field_name("name").unwrap();
+        let name = name_node.utf8_text(source.as_bytes()).unwrap().to_string();
+        let body = source[node.start_byte()..node.end_byte()].to_string();
+        
+        snippets.push(body.clone());
+        metadata.push((path.to_string(), name.clone(), body)); 
+        println!("  🚀 Captured: {}()", name);
     }
 
     let mut cursor = node.walk();
     for child in node.children(&mut cursor) {
-        crawl_node(child, source, snippets);
+        crawl_and_collect(child, source, path, snippets, metadata);
     }
+}
+
+fn search(query: &str, map: &[KnowledgePoint], model: &TextEmbedding) -> anyhow::Result<()> {
+    let query_vector = model.embed(vec![query.to_string()], None)?[0].clone();
+
+    let mut results: Vec<(&KnowledgePoint, f32)> = map.iter()
+        .map(|point| {
+            let score = point.embedding.iter().zip(&query_vector).map(|(a, b)| a * b).sum();
+            (point, score)
+        })
+        .collect();
+
+    results.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+
+    println!("\n🎯 Top Matches for: '{}'", query);
+
+    for (point, score) in results.iter().take(3) {
+        if *score > 0.35 { // Only show confident matches
+            println!("[Score: {:.4}] Function: {}()", score, point.function_name);
+            println!("   Location: {}", point.file_path);
+            println!("---");
+        }
+    }
+   
+    Ok(())
 }
